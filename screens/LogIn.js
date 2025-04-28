@@ -2,11 +2,15 @@ import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Text, StyleSheet, ImageBackground } from 'react-native';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
+import i18n from '../translation';
+import { Ionicons } from '@expo/vector-icons';
 
 const LoginScreen = ({ navigation }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
+    const [selectedLanguage, setSelectedLanguage] = useState('en');
+    const [dropdownVisible, setDropdownVisible] = useState(false);
 
     const handleLogin = async () => {
         try {
@@ -18,17 +22,40 @@ const LoginScreen = ({ navigation }) => {
             setErrorMessage(error.message);
         }
     };
+    const changeLanguage = (lang) => {
+        if (lang) {
+            i18n.locale = lang;
+            setSelectedLanguage(lang);
+            setDropdownVisible(false);
+        }
+    };
 
     return (
-        <ImageBackground
+        <ImageBackground source={require('../assets/concert.jpg')} style={styles.background}>
 
-            source={require('../assets/concert.jpg')}
-            style={styles.background}
-        >
+            <View style={styles.languagePicker}>
+                <TouchableOpacity onPress={() => setDropdownVisible(!dropdownVisible)}>
+                    <Ionicons name="earth" size={35} color="white" style={{ marginTop: 5 }} />
+                </TouchableOpacity>
+                {dropdownVisible && (
+                    <View style={styles.dropdown}>
+                        <TouchableOpacity style={styles.languageOption} onPress={() => changeLanguage('en')}>
+                            <Text style={styles.languageText}>English</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.languageOption} onPress={() => changeLanguage('fi')}>
+                            <Text style={styles.languageText}>Suomi</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.languageOption} onPress={() => changeLanguage('sv')}>
+                            <Text style={styles.languageText}>Svenska</Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
+            </View>
+
             <Text style={styles.brandName}>Bandit</Text>
 
             <View style={styles.container}>
-                <Text style={styles.title}>Log In</Text>
+                <Text style={styles.title}>{i18n.t('login')}</Text>
 
                 {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
 
@@ -48,17 +75,15 @@ const LoginScreen = ({ navigation }) => {
                 />
 
                 <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-                    <Text style={styles.loginButtonText}>Log In</Text>
+                    <Text style={styles.loginButtonText}>{i18n.t('login')}</Text>
                 </TouchableOpacity>
 
 
                 <View style={styles.signupContainer}>
-                    <Text style={styles.signupText}>
-                        Don't have an account?{' '}
-                        <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
-                            <Text style={styles.signupLink}>Sign Up!</Text>
-                        </TouchableOpacity>
-                    </Text>
+                    <Text style={styles.signupText}>{i18n.t('noAccount')} {'   '}</Text>
+                    <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
+                        <Text style={styles.signupLink}>{i18n.t('signup')}</Text>
+                    </TouchableOpacity>
                 </View>
 
             </View>
@@ -102,9 +127,54 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         paddingLeft: 10,
     },
+    signupContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        marginTop: 15,
+    },
+    loginButton: {
+        backgroundColor: 'transparent',
+        paddingVertical: 15,
+        borderRadius: 5,
+        alignItems: 'center',
+        marginTop: 10,
+    },
+    loginButtonText: {
+        color: 'black',
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    signupLink: {
+        color: 'black',
+        fontWeight: 'bold',
+    },
     error: {
         color: 'red',
         marginBottom: 10,
     },
+    languagePicker: {
+        position: 'absolute',
+        top: 50,
+        right: 30,
+        zIndex: 5,
+    },
+    dropdown: {
+        position: 'absolute',
+        top: 45,
+        right: 0,
+        backgroundColor: 'black',
+        borderRadius: 5,
+        width: 150,
+        paddingVertical: 10,
+        zIndex: 10,
+    },
+    languageOption: {
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+    },
+    languageText: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: 'white',
+    },
 });
-
