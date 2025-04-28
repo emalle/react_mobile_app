@@ -74,7 +74,7 @@ const SignUpScreen = () => {
             });
 
             setUserData({ name, surname, city, email });
-            navigation.navigate('Home');
+            navigation.navigate('LogIn');
 
             resetForm();
         } catch (error) {

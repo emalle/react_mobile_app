@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, TextInput, TouchableOpacity, Text, StyleSheet, ImageBackground } from 'react-native';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
 import i18n from '../translation';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Checkbox } from 'react-native-paper';
+
 
 const LoginScreen = ({ navigation }) => {
     const [email, setEmail] = useState('');
@@ -11,11 +14,40 @@ const LoginScreen = ({ navigation }) => {
     const [errorMessage, setErrorMessage] = useState('');
     const [selectedLanguage, setSelectedLanguage] = useState('en');
     const [dropdownVisible, setDropdownVisible] = useState(false);
+    const [isRememberMe, setIsRememberMe] = useState(false);
+
+    useEffect(() => {
+        const checkCredentials = async () => {
+            const savedEmail = await AsyncStorage.getItem('email');
+            const savedPassword = await AsyncStorage.getItem('password');
+            const rememberMe = await AsyncStorage.getItem('rememberMe');
+
+            if (savedEmail && savedPassword && rememberMe === 'true') {
+                setEmail(savedEmail);
+                setPassword(savedPassword);
+                setIsRememberMe(true);
+            }
+        };
+        checkCredentials();
+    }, []);
+
+    useEffect(() => {
+        i18n.locale = selectedLanguage;
+    }, [selectedLanguage]);
 
     const handleLogin = async () => {
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             console.log('Welcome', userCredential.user);
+            if (isRememberMe) {
+                await AsyncStorage.setItem('email', email);
+                await AsyncStorage.setItem('password', password);
+                await AsyncStorage.setItem('rememberMe', 'true');
+            } else {
+                await AsyncStorage.removeItem('email');
+                await AsyncStorage.removeItem('password');
+                await AsyncStorage.setItem('rememberMe', 'false');
+            }
             navigation.navigate('Home');
         } catch (error) {
             console.error('Login error:', error);
@@ -85,7 +117,13 @@ const LoginScreen = ({ navigation }) => {
                         <Text style={styles.signupLink}>{i18n.t('signup')}</Text>
                     </TouchableOpacity>
                 </View>
-
+                <View style={styles.checkboxContainer}>
+                    <Checkbox
+                        status={isRememberMe ? 'checked' : 'unchecked'}
+                        onPress={() => setIsRememberMe(!isRememberMe)} // Toggle the state
+                    />
+                    <Text style={styles.checkboxLabel}>{i18n.t('rememberMe')}</Text>
+                </View>
             </View>
         </ImageBackground>);
 };
@@ -108,6 +146,7 @@ const styles = StyleSheet.create({
         zIndex: 2,
     },
     container: {
+        position: 'absolute',
         width: '80%',
         backgroundColor: 'rgba(255, 255, 255, 0.8)',
         padding: 20,
@@ -176,5 +215,14 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         color: 'white',
+    },
+    checkboxContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 20,
+    },
+    checkboxLabel: {
+        fontSize: 14,
+        marginLeft: 10,
     },
 });
