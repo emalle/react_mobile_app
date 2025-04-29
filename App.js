@@ -7,58 +7,55 @@ import HomeScreen from './screens/Home';
 import FavoritesScreen from './screens/Favorites';
 import SettingsScreen from './screens/Settings';
 import { UserProvider } from './UserContext';
-import { initializeDatabase } from './db';
-
+import { SQLiteProvider } from './SQLiteContext';
 
 
 const Stack = createStackNavigator();
 
 export default function App() {
-  useEffect(() => {
-    initializeDatabase();
-  }, [])
-
   return (
     <UserProvider>
-      <NavigationContainer>
-        <Stack.Navigator initialRouteName="LogIn">
-          <Stack.Screen
-            name="SignUp"
-            component={SignUpScreen}
-            options={{
-              headerShown: false
-            }}
-          />
-          <Stack.Screen
-            name="LogIn"
-            component={LoginScreen}
-            options={{
-              headerShown: false
-            }}
-          />
-          <Stack.Screen
-            name="Home"
-            component={HomeScreen}
-            options={{
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name="Favorites"
-            component={FavoritesScreen}
-            options={{
-              headerShown: false
-            }}
-          />
-          <Stack.Screen
-            name="Settings"
-            component={SettingsScreen}
-            options={{
-              headerShown: false
-            }}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
+      <SQLiteProvider>
+        <NavigationContainer>
+          <Stack.Navigator initialRouteName="LogIn">
+            <Stack.Screen
+              name="SignUp"
+              component={SignUpScreen}
+              options={{
+                headerShown: false
+              }}
+            />
+            <Stack.Screen
+              name="LogIn"
+              component={LoginScreen}
+              options={{
+                headerShown: false
+              }}
+            />
+            <Stack.Screen
+              name="Home"
+              component={HomeScreen}
+              options={{
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="Favorites"
+              component={FavoritesScreen}
+              options={{
+                headerShown: false
+              }}
+            />
+            <Stack.Screen
+              name="Settings"
+              component={SettingsScreen}
+              options={{
+                headerShown: false
+              }}
+            />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </SQLiteProvider>
     </UserProvider>
   );
 }

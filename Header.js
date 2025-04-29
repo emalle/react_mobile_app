@@ -1,14 +1,14 @@
 import React from 'react';
 import { Appbar } from 'react-native-paper';
 import { auth } from './firebaseConfig';
-import { Text } from 'react-native';
+
 
 const Header = ({ navigation }) => {
 
     const handleLogout = async () => {
         try {
             await auth.signOut();
-            navigation.navigate('Login');
+            navigation.navigate('LogIn');
         } catch (error) {
             console.error('Error logging out:', error);
         }
@@ -17,12 +17,10 @@ const Header = ({ navigation }) => {
     return (
         <Appbar.Header style={{ height: 40 }} elevated={true}>
             <Appbar.Content
-                title={
-                    <Text style={{ fontSize: 32, fontWeight: 'bold', color: 'black' }}>
-                        Bandit
-                    </Text>
-                }
+                title="Bandit"
+                titleStyle={{ fontSize: 30, fontWeight: 'bold', color: 'black' }}
             />
+            <Appbar.Action icon="star" onPress={() => navigation.navigate('Favorites')} />
             <Appbar.Action icon="account-circle" onPress={() => navigation.navigate('Settings')} />
             <Appbar.Action icon="logout" onPress={handleLogout} />
         </Appbar.Header>

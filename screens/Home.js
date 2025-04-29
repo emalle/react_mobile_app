@@ -4,8 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import MapView, { Marker } from 'react-native-maps';
 import { FontAwesome } from '@expo/vector-icons';
-
-import { saveToFavorites } from '../db';
+import { SQLiteContext } from '../SQLiteContext';
 import Header from '../Header';
 import i18n from '../translation';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -19,8 +18,10 @@ const HomeScreen = ({ navigation }) => {
     const [searchCity, setSearchCity] = useState('');
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
-    const [hasSearched, setHasSearched] = useState(false);
+    const [_, setHasSearched] = useState(false);
     const [favoriteConcertIds, setFavoriteConcertIds] = useState(new Set());
+    const { saveToFavorites, deleteFromFavorites } = React.useContext(SQLiteContext);
+
 
     const formatDate = (date) => {
         const day = date.getDate().toString().padStart(2, '0');
@@ -94,6 +95,8 @@ const HomeScreen = ({ navigation }) => {
                     latitudeDelta: 0.0322,
                     longitudeDelta: 0.0221,
                 });
+
+                setSearchCity('');
             } else {
                 console.log('City not found!');
             }
@@ -102,19 +105,24 @@ const HomeScreen = ({ navigation }) => {
         }
     };
 
-    const toggleFavorite = (concert) => {
+    const toggleFavorite = async (concert) => {
+
         if (favoriteConcertIds.has(concert.id)) {
             const newSet = new Set(favoriteConcertIds);
             newSet.delete(concert.id);
             setFavoriteConcertIds(newSet);
+
+
+            await deleteFromFavorites(concert.id);
         } else {
-            saveToFavorites(concert);
             const newSet = new Set(favoriteConcertIds);
             newSet.add(concert.id);
             setFavoriteConcertIds(newSet);
+
+
+            await saveToFavorites(concert);
         }
     };
-
     const onDateChange = (event, selected) => {
         setShowDatePicker(false);
         if (event?.type === 'set' && selected) {

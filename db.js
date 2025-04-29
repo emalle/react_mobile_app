@@ -2,55 +2,53 @@ import * as SQLite from 'expo-sqlite';
 
 const db = SQLite.openDatabaseSync('concerts.db');
 
-export const initializeDatabase = () => {
+
+export const initializeDatabase = async () => {
     try {
-        db.execSync('CREATE TABLE IF NOT EXISTS favorites (id INTEGER PRIMARY KEY NOT NULL, concertId TEXT, concertName TEXT, venueName TEXT);');
+        await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS favorites (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        concertId TEXT UNIQUE,
+        concertName TEXT,
+        venueName TEXT
+      );
+    `);
         console.log('Favorites table created');
     } catch (error) {
-        console.log('Error creating table:', error);
+        console.error('Error creating table:', error);
     }
 };
 
-export const saveToFavorites = (concert) => {
+
+export const saveToFavorites = async (concert) => {
     try {
-        db.execSync('INSERT INTO favorites (concertId, concertName, venueName) VALUES (?, ?, ?);', [concert.id, concert.name, concert._embedded.venues[0].name]);
+        await db.execAsync(
+            `INSERT OR IGNORE INTO favorites (concertId, concertName, venueName) VALUES (?, ?, ?);`,
+            [concert.id, concert.name, concert._embedded.venues[0].name]
+        );
         console.log('Concert saved!');
     } catch (error) {
-        console.log('Error saving concert to favorites:', error);
+        console.error('Error saving concert:', error);
     }
 };
 
-export const getFavorites = () => {
+
+export const getFavorites = async () => {
     try {
-        // Using executeSql for SELECT queries (to fetch data)
-        const results = [];
-        db.transaction((tx) => {
-            tx.executeSql(
-                'SELECT * FROM favorites;',
-                [],
-                (_, { rows }) => {
-                    // Push all rows into the results array
-                    rows._array.forEach((row) => results.push(row));
-                },
-                (_, error) => {
-                    console.log('Error fetching favorites:', error);
-                    return [];
-                }
-            );
-        });
-        return results;
+        const result = await db.getAllAsync(`SELECT * FROM favorites;`);
+        return result;
     } catch (error) {
-        console.log('Error fetching favorites:', error);
+        console.error('Error fetching favorites:', error);
         return [];
     }
 };
 
-export const deleteFromFavorites = (concertId) => {
-    try {
 
-        db.execSync('DELETE FROM favorites WHERE concertId = ?;', [concertId]);
+export const deleteFromFavorites = async (concertId) => {
+    try {
+        await db.runAsync(`DELETE FROM favorites WHERE concertId = ?;`, [concertId]);
         console.log('Concert removed!');
     } catch (error) {
-        console.log('Error removing concert from favorites:', error);
+        console.error('Could not delete concert:', error);
     }
 };
