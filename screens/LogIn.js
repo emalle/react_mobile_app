@@ -120,7 +120,7 @@ const LoginScreen = ({ navigation }) => {
                 <View style={styles.checkboxContainer}>
                     <Checkbox
                         status={isRememberMe ? 'checked' : 'unchecked'}
-                        onPress={() => setIsRememberMe(!isRememberMe)} // Toggle the state
+                        onPress={() => setIsRememberMe(!isRememberMe)}
                     />
                     <Text style={styles.checkboxLabel}>{i18n.t('rememberMe')}</Text>
                 </View>

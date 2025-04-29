@@ -1,3 +1,4 @@
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import SignUpScreen from './screens/SignUp';
@@ -6,12 +7,17 @@ import HomeScreen from './screens/Home';
 import FavoritesScreen from './screens/Favorites';
 import SettingsScreen from './screens/Settings';
 import { UserProvider } from './UserContext';
+import { initializeDatabase } from './db';
 
 
 
 const Stack = createStackNavigator();
 
 export default function App() {
+  useEffect(() => {
+    initializeDatabase();
+  }, [])
+
   return (
     <UserProvider>
       <NavigationContainer>
@@ -20,7 +26,7 @@ export default function App() {
             name="SignUp"
             component={SignUpScreen}
             options={{
-              headerShown: false // To hide the header in the screens
+              headerShown: false
             }}
           />
           <Stack.Screen
