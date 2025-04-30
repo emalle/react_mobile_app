@@ -7,11 +7,9 @@ export const initializeDatabase = async () => {
     try {
         await db.execAsync(`
       CREATE TABLE IF NOT EXISTS favorites (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        concertId TEXT UNIQUE,
-        concertName TEXT,
-        venueName TEXT
-      );
+    concertId TEXT PRIMARY KEY NOT NULL,
+    concertName TEXT,
+    venueName TEXT
     `);
         console.log('Favorites table created');
     } catch (error) {
@@ -22,20 +20,34 @@ export const initializeDatabase = async () => {
 
 export const saveToFavorites = async (concert) => {
     try {
-        await db.execAsync(
-            `INSERT OR IGNORE INTO favorites (concertId, concertName, venueName) VALUES (?, ?, ?);`,
-            [concert.id, concert.name, concert._embedded.venues[0].name]
-        );
-        console.log('Concert saved!');
+        console.log('Saving concert:', concert);
+
+        const concertId = concert.concertId;
+        const concertName = concert.concertName;
+        const venueName = concert.venueName;
+
+        console.log('Concert ID:', concertId);
+        console.log('Concert Name:', concertName);
+        console.log('Venue Name:', venueName);
+
+        if (concertId && concertName && venueName) {
+            await db.execAsync(
+                `INSERT OR IGNORE INTO favorites (concertId, concertName, venueName) VALUES (?, ?, ?);`,
+                [concertId, concertName, venueName]
+            );
+            console.log('Concert saved!');
+        } else {
+            console.log('Error: Some values are missing. Concert not saved.');
+        }
     } catch (error) {
         console.error('Error saving concert:', error);
     }
 };
 
-
 export const getFavorites = async () => {
     try {
         const result = await db.getAllAsync(`SELECT * FROM favorites;`);
+        console.log('Fetched favorites:', result);
         return result;
     } catch (error) {
         console.error('Error fetching favorites:', error);

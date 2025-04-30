@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, Pressable, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, Pressable, ImageBackground, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import MapView, { Marker } from 'react-native-maps';
@@ -96,7 +96,7 @@ const HomeScreen = ({ navigation }) => {
                     longitudeDelta: 0.0221,
                 });
 
-                setSearchCity('');
+
             } else {
                 console.log('City not found!');
             }
@@ -119,8 +119,16 @@ const HomeScreen = ({ navigation }) => {
             newSet.add(concert.id);
             setFavoriteConcertIds(newSet);
 
+            const venueName = concert._embedded?.venues?.[0]?.name || 'Unknown Venue';
 
-            await saveToFavorites(concert);
+            const concertInfo = {
+                concertId: concert.id,
+                concertName: concert.name,
+                venueName,
+            };
+
+            await saveToFavorites(concertInfo);
+
         }
     };
     const onDateChange = (event, selected) => {
@@ -134,7 +142,8 @@ const HomeScreen = ({ navigation }) => {
     };
 
     const handleConcertPress = (concert) => {
-        const venue = concert._embedded.venues[0];
+        const venue = concert._embedded?.venues?.[0];
+        if (!venue || !venue.location) return;
         const concertLocation = {
             latitude: parseFloat(venue.location.latitude),
             longitude: parseFloat(venue.location.longitude),
@@ -142,7 +151,13 @@ const HomeScreen = ({ navigation }) => {
             longitudeDelta: 0.0221,
         };
         setMapRegion(concertLocation);
-        navigation.navigate('ConcertDetail', { concert });
+    };
+    const handleBuyTicket = (ticketUrl) => {
+        if (ticketUrl && typeof ticketUrl === 'string') {
+            Linking.openURL(ticketUrl).catch((err) => console.error('Failed to open URL:', err));
+        } else {
+            console.error('Invalid ticket URL:', ticketUrl);
+        }
     };
 
     return (
@@ -194,18 +209,23 @@ const HomeScreen = ({ navigation }) => {
                             }}
                         />
                     )}
-                    {concerts.map((concert) => (
-                        <Marker
-                            key={concert.id}
-                            coordinate={{
-                                latitude: parseFloat(concert._embedded.venues[0].location.latitude),
-                                longitude: parseFloat(concert._embedded.venues[0].location.longitude),
-                            }}
-                            title={concert.name}
-                            description={concert._embedded.venues[0].name}
-                            onPress={() => handleConcertPress(concert)}
-                        />
-                    ))}
+                    {concerts.map((concert) => {
+                        const venue = concert._embedded?.venues?.[0];
+                        if (!venue || !venue.location) return null;
+
+                        return (
+                            <Marker
+                                key={concert.id}
+                                coordinate={{
+                                    latitude: parseFloat(venue.location.latitude),
+                                    longitude: parseFloat(venue.location.longitude),
+                                }}
+                                title={concert.name}
+                                description={venue.name}
+                                onPress={() => handleConcertPress(concert)}
+                            />
+                        );
+                    })}
                 </MapView>
 
                 <View style={{ flex: 1 }}>
@@ -218,7 +238,9 @@ const HomeScreen = ({ navigation }) => {
                             renderItem={({ item }) => (
                                 <Pressable
                                     onPress={() => {
-                                        const venue = item._embedded.venues[0];
+                                        const venue = item._embedded?.venues?.[0];
+                                        if (!venue || !venue.location) return;
+
                                         setMapRegion({
                                             latitude: parseFloat(venue.location.latitude),
                                             longitude: parseFloat(venue.location.longitude),
@@ -226,6 +248,7 @@ const HomeScreen = ({ navigation }) => {
                                             longitudeDelta: 0.0221,
                                         });
                                     }}
+
                                     style={styles.card}
                                 >
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -236,6 +259,12 @@ const HomeScreen = ({ navigation }) => {
                                                 size={24}
                                                 color="gold"
                                             />
+                                        </Pressable>
+                                        <Pressable
+                                            onPress={() => handleBuyTicket(item.url)}
+                                            style={styles.buyButton}
+                                        >
+                                            <Text style={styles.buyButtonText}>Buy Ticket</Text>
                                         </Pressable>
                                     </View>
                                 </Pressable>

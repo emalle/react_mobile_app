@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Pressable, ImageBackground } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { SQLiteContext } from '../SQLiteContext';
 import Header from '../Header';
@@ -14,7 +14,8 @@ const FavoritesScreen = ({ navigation }) => {
     useEffect(() => {
         const loadFavorites = async () => {
             const result = await getFavorites();
-            setFavorites(result);
+            const filtered = result.filter(item => item?.concertId && item?.concertName);
+            setFavorites(filtered);
         };
 
         loadFavorites();
@@ -29,17 +30,21 @@ const FavoritesScreen = ({ navigation }) => {
     return (
         <SafeAreaView style={{ flex: 1 }}>
             <Header navigation={navigation} />
-            <View style={styles.container}>
+            <ImageBackground
+                source={require('../assets/concert.jpg')}
+                style={styles.background}
+                resizeMode="cover"
+            >
                 {favorites.length === 0 ? (
                     <Text style={styles.noFavoritesText}>No favorite concerts yet!</Text>
                 ) : (
                     <FlatList
                         data={favorites}
-                        keyExtractor={(item, index) => item.concertId?.toString() || `fallback-${index}`}
+                        keyExtractor={(item, index) => item.concertId ? item.concertId.toString() : `fallback-${index}`} contentContainerStyle={{ padding: 20 }}
                         renderItem={({ item }) => (
                             <View style={styles.card}>
-                                <Text style={styles.title}>{item.concertName}</Text>
-                                <Text style={styles.venue}>{item.venueName}</Text>
+                                <Text style={styles.title}>{item.concertName || 'Unnamed Concert'}</Text>
+                                <Text style={styles.venue}>{item.venueName || 'Unknown Venue'}</Text>
                                 <Pressable onPress={() => handleDelete(item.concertId)} style={styles.deleteButton}>
                                     <FontAwesome name="trash" size={20} color="red" />
                                 </Pressable>
@@ -47,21 +52,25 @@ const FavoritesScreen = ({ navigation }) => {
                         )}
                     />
                 )}
-            </View>
+            </ImageBackground>
         </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
+    background: {
         flex: 1,
-        padding: 20,
-        backgroundColor: '#f5f5f5',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     noFavoritesText: {
+        fontSize: 20,
+        color: 'white',
+        fontWeight: 'bold',
         textAlign: 'center',
-        fontSize: 16,
-        color: '#777',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        padding: 15,
+        borderRadius: 10,
     },
     card: {
         backgroundColor: '#fff',
@@ -86,5 +95,6 @@ const styles = StyleSheet.create({
         borderRadius: 5,
     },
 });
+
 
 export default FavoritesScreen;
