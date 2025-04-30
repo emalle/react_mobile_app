@@ -14,12 +14,23 @@ const FavoritesScreen = ({ navigation }) => {
     useEffect(() => {
         const loadFavorites = async () => {
             const result = await getFavorites();
+            console.log('Fetched Favorites:', result);
             const filtered = result.filter(item => item?.concertId && item?.concertName);
             setFavorites(filtered);
         };
 
         loadFavorites();
     }, []);
+
+    const formatDate = (dateString) => {
+        if (!dateString) return 'No Date Available';
+        const date = new Date(dateString);
+        if (isNaN(date)) return 'Invalid Date';
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+    };
 
 
     const handleDelete = async (concertId) => {
@@ -45,6 +56,7 @@ const FavoritesScreen = ({ navigation }) => {
                             <View style={styles.card}>
                                 <Text style={styles.title}>{item.concertName || 'Unnamed Concert'}</Text>
                                 <Text style={styles.venue}>{item.venueName || 'Unknown Venue'}</Text>
+                                <Text style={styles.dateText}>{formatDate(item.date) || 'No Date Available'}</Text>
                                 <Pressable onPress={() => handleDelete(item.concertId)} style={styles.deleteButton}>
                                     <FontAwesome name="trash" size={20} color="red" />
                                 </Pressable>
@@ -73,28 +85,36 @@ const styles = StyleSheet.create({
         borderRadius: 10,
     },
     card: {
-        backgroundColor: '#fff',
+        backgroundColor: 'rgba(247, 243, 243, 0.7)',
         padding: 15,
         marginVertical: 10,
-        borderRadius: 8,
-        elevation: 2,
+        borderRadius: 12,
+        elevation: 3,
     },
     title: {
         fontSize: 18,
         fontWeight: 'bold',
+        color: '#333',
     },
     venue: {
         color: '#555',
         marginVertical: 5,
+        fontSize: 14,
+    },
+    date: {
+        color: '#888',
+        marginVertical: 5,
+        fontSize: 12,
     },
     deleteButton: {
         marginTop: 10,
         alignSelf: 'flex-start',
-        padding: 5,
+        padding: 8,
         backgroundColor: '#ffdddd',
         borderRadius: 5,
+        borderWidth: 1,
+        borderColor: '#ddd',
     },
 });
-
 
 export default FavoritesScreen;

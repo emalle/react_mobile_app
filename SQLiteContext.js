@@ -1,8 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import * as SQLite from 'expo-sqlite';
 
-
-const db = SQLite.openDatabaseSync('concerts.db');
 console.log('SQLite:', SQLite);
 
 
@@ -17,11 +15,13 @@ export const SQLiteProvider = ({ children }) => {
     useEffect(() => {
         const initDb = async () => {
             const database = await SQLite.openDatabaseAsync('concerts.db');
+            await database.execAsync(`DROP TABLE IF EXISTS favorites;`);
             await database.execAsync(`
             CREATE TABLE IF NOT EXISTS favorites (
               concertId TEXT PRIMARY KEY,
               concertName TEXT,
-              venueName TEXT
+              venueName TEXT,
+              date TEXT
             );
           `);
             console.log('Favorites table ensured');
@@ -40,8 +40,8 @@ export const SQLiteProvider = ({ children }) => {
         if (concertId && concertName && venueName) {
             try {
                 await db.runAsync(
-                    `INSERT OR IGNORE INTO favorites (concertId, concertName, venueName) VALUES (?, ?, ?);`,
-                    [concertId, concertName, venueName]
+                    `INSERT OR IGNORE INTO favorites (concertId, concertName, venueName, date) VALUES (?, ?, ?, ?);`,
+                    [concertId, concertName, venueName, concert.date]
                 );
                 console.log(' Concert saved!');
             } catch (error) {

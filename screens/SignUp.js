@@ -33,7 +33,6 @@ const SignUpScreen = () => {
         }
     };
 
-    // Reset the form fields
     const resetForm = () => {
         setFormData({
             name: '',
@@ -44,8 +43,6 @@ const SignUpScreen = () => {
             confirmPassword: ''
         });
     };
-
-    // Sign up process
     const signUp = async () => {
         const { name, surname, city, password, confirmPassword, email } = formData;
 

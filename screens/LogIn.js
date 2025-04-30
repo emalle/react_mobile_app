@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { View, TextInput, TouchableOpacity, Text, StyleSheet, ImageBackground } from 'react-native';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
+import { getDatabase, ref, get } from 'firebase/database';
+import { UserContext } from '../UserContext';
 import i18n from '../translation';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -15,6 +17,7 @@ const LoginScreen = ({ navigation }) => {
     const [selectedLanguage, setSelectedLanguage] = useState('en');
     const [dropdownVisible, setDropdownVisible] = useState(false);
     const [isRememberMe, setIsRememberMe] = useState(false);
+    const { setUserData } = useContext(UserContext);
 
     useEffect(() => {
         const checkCredentials = async () => {
@@ -38,7 +41,18 @@ const LoginScreen = ({ navigation }) => {
     const handleLogin = async () => {
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            console.log('Welcome', userCredential.user);
+            const user = userCredential.user;
+
+            const db = getDatabase();
+            const userRef = ref(db, 'users/' + user.uid);
+            const snapshot = await get(userRef);
+
+            if (snapshot.exists()) {
+                const userProfile = snapshot.val();
+                setUserData(userProfile);
+            } else {
+                console.log('No user profile found in database.');
+            }
             if (isRememberMe) {
                 await AsyncStorage.setItem('email', email);
                 await AsyncStorage.setItem('password', password);

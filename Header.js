@@ -2,9 +2,11 @@ import React from 'react';
 import { Appbar } from 'react-native-paper';
 import { auth } from './firebaseConfig';
 import { Pressable, Text, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 
-const Header = ({ navigation }) => {
+const Header = () => {
+    const navigation = useNavigation();
 
     const handleLogout = async () => {
         try {

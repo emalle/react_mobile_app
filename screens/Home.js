@@ -106,6 +106,7 @@ const HomeScreen = ({ navigation }) => {
     };
 
     const toggleFavorite = async (concert) => {
+        const concertDate = selectedDate.toISOString();
 
         if (favoriteConcertIds.has(concert.id)) {
             const newSet = new Set(favoriteConcertIds);
@@ -125,10 +126,12 @@ const HomeScreen = ({ navigation }) => {
                 concertId: concert.id,
                 concertName: concert.name,
                 venueName,
+                date: concertDate,
             };
 
             await saveToFavorites(concertInfo);
-
+            console.log('Saving concert with date:', selectedDate.toISOString());
+            console.log('Concert Info to save:', concertInfo);
         }
     };
     const onDateChange = (event, selected) => {
