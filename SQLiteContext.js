@@ -59,11 +59,11 @@ export const SQLiteProvider = ({ children }) => {
 
         try {
             const results = await db.getAllAsync(`SELECT * FROM favorites;`);
-            console.log('📦 Fetched favorites:', results);
+            console.log('Fetched favorites:', results);
             setFavorites(results);
             return results;
         } catch (error) {
-            console.error('❌ Error fetching favorites:', error);
+            console.error('Error fetching favorites:', error);
             return [];
         }
     };
@@ -73,9 +73,9 @@ export const SQLiteProvider = ({ children }) => {
 
         try {
             await db.runAsync(`DELETE FROM favorites WHERE concertId = ?;`, [concertId]);
-            console.log('🗑️ Concert deleted!');
+            console.log('Concert deleted!');
         } catch (error) {
-            console.error('❌ Error deleting concert:', error);
+            console.error('Error deleting concert:', error);
         }
     };
 
