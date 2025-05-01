@@ -8,6 +8,7 @@ import { SQLiteContext } from '../SQLiteContext';
 import Header from '../Header';
 import i18n from '../translation';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Picker } from '@react-native-picker/picker';
 
 const TICKETMASTER_API_KEY = 'OdCpG2WlzwUf2HaX0oX0OSolZyTdA7sQ';
 
@@ -21,7 +22,7 @@ const HomeScreen = ({ navigation }) => {
     const [_, setHasSearched] = useState(false);
     const [favoriteConcertIds, setFavoriteConcertIds] = useState(new Set());
     const { saveToFavorites, deleteFromFavorites } = React.useContext(SQLiteContext);
-
+    const [selectedGenre, setSelectedGenre] = useState('');
 
     const formatDate = (date) => {
         const day = date.getDate().toString().padStart(2, '0');
@@ -50,7 +51,8 @@ const HomeScreen = ({ navigation }) => {
         })();
     }, []);
 
-    const fetchConcerts = async (cityName, date) => {
+
+    const fetchConcerts = async (cityName, date, genre = '') => {
         try {
             const formattedDate = date.toISOString().split('T')[0];
             const startDateTime = `${formattedDate}T00:00:00Z`;
@@ -65,16 +67,35 @@ const HomeScreen = ({ navigation }) => {
             setHasSearched(true);
 
             if (data._embedded && data._embedded.events) {
-                const concertEvents = data._embedded.events.filter(event =>
-                    event.classifications &&
-                    event.classifications.some(classification => classification.segment.name === 'Music')
+                let concertEvents = data._embedded.events.filter(event =>
+                    event.classifications?.some(classification =>
+                        classification.segment?.name?.toLowerCase() === 'music'
+                    )
                 );
+
+
+                if (genre && genre.trim() !== '') {
+                    concertEvents = concertEvents.filter(event =>
+                        event.classifications?.some(classification =>
+                            classification.genre?.name?.toLowerCase() === genre.toLowerCase()
+                        )
+                    );
+                }
+
                 setConcerts(concertEvents);
             } else {
                 setConcerts([]);
             }
         } catch (error) {
             console.error('Error fetching concerts:', error);
+        }
+    };
+    const handleGenreChange = (itemValue) => {
+        setSelectedGenre(itemValue);
+        if (itemValue === '') {
+            fetchConcerts(searchCity, selectedDate);
+        } else {
+            fetchConcerts(searchCity, selectedDate, itemValue);
         }
     };
 
@@ -86,7 +107,7 @@ const HomeScreen = ({ navigation }) => {
             if (geocoded.length > 0) {
                 const { latitude, longitude } = geocoded[0];
 
-                fetchConcerts(searchCity, selectedDate);
+                fetchConcerts(searchCity, selectedDate, selectedGenre);
 
                 setLocation({ coords: { latitude, longitude } });
                 setMapRegion({
@@ -95,8 +116,6 @@ const HomeScreen = ({ navigation }) => {
                     latitudeDelta: 0.0322,
                     longitudeDelta: 0.0221,
                 });
-
-
             } else {
                 console.log('City not found!');
             }
@@ -112,8 +131,6 @@ const HomeScreen = ({ navigation }) => {
             const newSet = new Set(favoriteConcertIds);
             newSet.delete(concert.id);
             setFavoriteConcertIds(newSet);
-
-
             await deleteFromFavorites(concert.id);
         } else {
             const newSet = new Set(favoriteConcertIds);
@@ -121,7 +138,6 @@ const HomeScreen = ({ navigation }) => {
             setFavoriteConcertIds(newSet);
 
             const venueName = concert._embedded?.venues?.[0]?.name || 'Unknown Venue';
-
             const concertInfo = {
                 concertId: concert.id,
                 concertName: concert.name,
@@ -130,16 +146,15 @@ const HomeScreen = ({ navigation }) => {
             };
 
             await saveToFavorites(concertInfo);
-            console.log('Saving concert with date:', selectedDate.toISOString());
-            console.log('Concert Info to save:', concertInfo);
         }
     };
+
     const onDateChange = (event, selected) => {
         setShowDatePicker(false);
         if (event?.type === 'set' && selected) {
             setSelectedDate(selected);
             if (searchCity.trim()) {
-                fetchConcerts(searchCity, selected);
+                fetchConcerts(searchCity, selected, selectedGenre);
             }
         }
     };
@@ -155,6 +170,7 @@ const HomeScreen = ({ navigation }) => {
         };
         setMapRegion(concertLocation);
     };
+
     const handleBuyTicket = (ticketUrl) => {
         if (ticketUrl && typeof ticketUrl === 'string') {
             Linking.openURL(ticketUrl).catch((err) => console.error('Failed to open URL:', err));
@@ -184,6 +200,21 @@ const HomeScreen = ({ navigation }) => {
                         <FontAwesome name="calendar" size={18} color="#333" />
                         <Text style={styles.dateText}>{formatDate(selectedDate)}</Text>
                     </Pressable>
+                </View>
+
+                <View style={styles.pickerWrapper}>
+                    <Picker
+                        selectedValue={selectedGenre}
+                        onValueChange={handleGenreChange}
+                        style={[styles.picker, selectedGenre === '' && styles.smallText]}
+                    >
+                        <Picker.Item label={i18n.t('searchByGenre')} value=" " enabled={true} />
+                        <Picker.Item label="Rock" value="Rock" />
+                        <Picker.Item label="Pop" value="Pop" />
+                        <Picker.Item label="R&B" value="R&B" />
+                        <Picker.Item label="Country" value="Country" />
+                        <Picker.Item label="Jazz" value="Jazz" />
+                    </Picker>
                 </View>
 
                 {showDatePicker && (
@@ -251,7 +282,6 @@ const HomeScreen = ({ navigation }) => {
                                             longitudeDelta: 0.0221,
                                         });
                                     }}
-
                                     style={styles.card}
                                 >
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -278,7 +308,7 @@ const HomeScreen = ({ navigation }) => {
                     )}
                 </View>
             </ImageBackground>
-        </SafeAreaView>
+        </SafeAreaView >
     );
 };
 
@@ -341,5 +371,20 @@ const styles = StyleSheet.create({
     },
     starButton: {
         paddingLeft: 10,
+    },
+    pickerWrapper: {
+        backgroundColor: '#eee',
+        borderRadius: 8,
+        width: '50%',
+        alignSelf: 'center',
+        marginBottom: 20,
+    },
+    picker: {
+        height: 60,
+        width: '100%',
+    },
+    smallText: {
+        fontSize: 6,
+        color: '#999',
     },
 });

@@ -37,6 +37,13 @@ const FavoritesScreen = ({ navigation }) => {
         await deleteFromFavorites(concertId);
         setFavorites((prevFavorites) => prevFavorites.filter(concert => concert.concertId !== concertId));
     };
+    const handleBuyTicket = (ticketUrl) => {
+        if (ticketUrl && typeof ticketUrl === 'string') {
+            Linking.openURL(ticketUrl).catch((err) => console.error('Failed to open URL:', err));
+        } else {
+            console.error('Invalid ticket URL:', ticketUrl);
+        }
+    };
 
     return (
         <SafeAreaView style={{ flex: 1 }}>
@@ -59,6 +66,12 @@ const FavoritesScreen = ({ navigation }) => {
                                 <Text style={styles.dateText}>{formatDate(item.date) || 'No Date Available'}</Text>
                                 <Pressable onPress={() => handleDelete(item.concertId)} style={styles.deleteButton}>
                                     <FontAwesome name="trash" size={20} color="red" />
+                                </Pressable>
+                                <Pressable
+                                    onPress={() => handleBuyTicket(item.url)}
+                                    style={styles.buyButton}
+                                >
+                                    <Text style={styles.buyButtonText}>Buy Ticket</Text>
                                 </Pressable>
                             </View>
                         )}

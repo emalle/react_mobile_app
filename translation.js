@@ -8,7 +8,8 @@ const i18n = new I18n({
         welcome: "Welcome!",
         rememberMe: "Remember Me",
         searchByCity: "Search by city",
-        noConcertsFound: "Sorry, no concerts found!"
+        noConcertsFound: "Sorry, no Concerts Found!",
+        searchByGenre: "Search by genre"
     },
     fi: {
         login: "Kirjaudu sisään",
@@ -16,7 +17,9 @@ const i18n = new I18n({
         noAccount: "Eikö sinulla ole tiliä?",
         welcome: "Tervetuloa!",
         rememberMe: "Muista Minut",
-        searchByCity: "Etsi kaupunkia"
+        searchByCity: "Etsi kaupunkia",
+        noConcertsFound: "Ei löytynyt konsertteja!",
+        searchByGenre: "Haku Lajityypeittäin"
     },
     sv: {
         login: "Logga in",
@@ -25,6 +28,8 @@ const i18n = new I18n({
         welcome: "Välkommen!",
         rememberMe: "Kom Ihåg Mig",
         searchByCity: "Sök efter stad",
+        noConcertsFound: "Tyvärr, inga konserter hittades!",
+        searchByGenre: "Sök efter genre"
     }
 });
 
